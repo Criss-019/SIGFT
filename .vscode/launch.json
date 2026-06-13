@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "EurekaServerApplication",
+            "request": "launch",
+            "mainClass": "cl.duoc.sigft.eureka_server.EurekaServerApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-PasajerosMsApplication<pasajeros-ms>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "cl.duoc.sigft.pasajeros_ms.PasajerosMsApplication",
+            "projectName": "pasajeros-ms",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

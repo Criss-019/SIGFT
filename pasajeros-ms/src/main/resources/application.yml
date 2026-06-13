@@ -1,0 +1,30 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /api/v1/pasajeros-ms
+
+spring:
+  application:
+    name: pasajeros-ms
+  datasource:
+    url: jdbc:mysql://localhost:3306/pasajeros_db?createDatabaseIfNotExist=true&useSSL=false
+    username: root
+    password: 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+# Configuración de Logs 
+logging:
+  level:
+    cl.duoc.sigft.pasajeros_ms: INFO
+    
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
