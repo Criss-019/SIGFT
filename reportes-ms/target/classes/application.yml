@@ -1,0 +1,35 @@
+server:
+  port: 8084
+  servlet:
+    context-path: /api/v1/reportes-ms
+
+spring:
+  application:
+    name: reportes-ms
+  datasource:
+    url: jdbc:mysql://localhost:3306/reportes_db?createDatabaseIfNotExist=true&useSSL=false
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+logging:
+  level:
+    cl.duoc.sigft.reportes_ms: INFO
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
