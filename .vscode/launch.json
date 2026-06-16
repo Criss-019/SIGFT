@@ -2,10 +2,13 @@
     "configurations": [
         {
             "type": "java",
-            "name": "EurekaServerApplication",
+            "name": "Spring Boot-EurekaServerApplication<eureka-server>",
             "request": "launch",
+            "cwd": "${workspaceFolder}",
             "mainClass": "cl.duoc.sigft.eureka_server.EurekaServerApplication",
-            "projectName": ""
+            "projectName": "eureka-server",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         },
         {
             "type": "java",
@@ -14,17 +17,6 @@
             "cwd": "${workspaceFolder}",
             "mainClass": "cl.duoc.sigft.pasajeros_ms.PasajerosMsApplication",
             "projectName": "pasajeros-ms",
-            "args": "",
-            "envFile": "${workspaceFolder}/.env",
-            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=53262 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=pasajeros-ms"
-        },
-        {
-            "type": "java",
-            "name": "Spring Boot-EurekaServerApplication<eureka-server>",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "mainClass": "cl.duoc.sigft.eureka_server.EurekaServerApplication",
-            "projectName": "eureka-server",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
         },
@@ -45,6 +37,36 @@
             "cwd": "${workspaceFolder}",
             "mainClass": "cl.duoc.sigft.api_gateway.ApiGatewayApplication",
             "projectName": "api-gateway",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-SeguridadMsApplication<seguridad-ms>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "cl.duoc.sigft.seguridad_ms.SeguridadMsApplication",
+            "projectName": "seguridad-ms",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ReportesMsApplication<reportes-ms>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "cl.duoc.sigft.reportes_ms.ReportesMsApplication",
+            "projectName": "reportes-ms",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-IntegracionMsApplication<integracion-ms>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "cl.duoc.sigft.integracion_ms.IntegracionMsApplication",
+            "projectName": "integracion-ms",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
         }
