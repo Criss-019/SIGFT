@@ -2,6 +2,7 @@ package cl.duoc.sigft.seguridad_ms.service;
 
 import cl.duoc.sigft.seguridad_ms.dto.CrearUsuarioDTO;
 import cl.duoc.sigft.seguridad_ms.dto.LoginRequestDTO;
+import cl.duoc.sigft.seguridad_ms.dto.LoginResponseDTO;
 import cl.duoc.sigft.seguridad_ms.dto.UsuarioSistemaDTO;
 import cl.duoc.sigft.seguridad_ms.model.RolUsuario;
 
@@ -17,5 +18,5 @@ public interface UsuarioSistemaService {
     UsuarioSistemaDTO actualizar(Long id, UsuarioSistemaDTO dto);
     void desactivar(Long id);
     void eliminar(Long id);
-    UsuarioSistemaDTO autenticar(LoginRequestDTO loginRequest);
+    LoginResponseDTO autenticar(LoginRequestDTO loginRequest); // ← devuelve token
 }

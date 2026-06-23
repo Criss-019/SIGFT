@@ -12,15 +12,19 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "vehiculos")
+@EqualsAndHashCode(exclude = "vehiculos")
 @Entity
 @Table(name = "pasajeros")
 public class Pasajero {
@@ -36,6 +40,9 @@ public class Pasajero {
 
     @Column(name = "nacionalidad", nullable = false, length = 50)
     private String nacionalidad;
+
+    @Column(name = "email", nullable = false, unique = true, length = 100)
+    private String email;
 
     
     @OneToMany(mappedBy = "pasajero", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -34,6 +34,7 @@ public class PasajeroServiceImpl implements PasajeroService {
                 .nombre(dto.getNombre())
                 .edad(dto.getEdad())
                 .nacionalidad(dto.getNacionalidad())
+                .email(dto.getEmail())
                 .build();
 
         // IMPLEMENTACIÓN DE LA LÓGICA DEL DIAGRAMA
@@ -69,6 +70,7 @@ public class PasajeroServiceImpl implements PasajeroService {
         pasajero.setNombre(dto.getNombre());
         pasajero.setEdad(dto.getEdad());
         pasajero.setNacionalidad(dto.getNacionalidad());
+        pasajero.setEmail(dto.getEmail());
 
         repository.save(pasajero);
         return mapearADto(pasajero);
@@ -90,7 +92,8 @@ public class PasajeroServiceImpl implements PasajeroService {
         dto.setNombre(pasajero.getNombre());
         dto.setEdad(pasajero.getEdad());
         dto.setNacionalidad(pasajero.getNacionalidad());
-
+        dto.setEmail(pasajero.getEmail());
+        
         // Si el pasajero tiene vehículos, los mapeamos también
         if (pasajero.getVehiculos() != null && !pasajero.getVehiculos().isEmpty()) {
             List<VehiculoDTO> vehiculosDto = pasajero.getVehiculos().stream().map(v -> {

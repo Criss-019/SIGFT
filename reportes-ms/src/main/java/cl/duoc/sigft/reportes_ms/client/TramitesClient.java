@@ -6,12 +6,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "tramites-ms", path = "/api/v1/tramites-ms")
+@FeignClient(name = "tramites-ms", path = "/api/v1/tramites")
 public interface TramitesClient {
 
-    @GetMapping("/tramites")
+    @GetMapping
     List<Map<String, Object>> obtenerTodosTramites();
 
-    @GetMapping("/declaraciones")
+    @GetMapping("/declaraciones-sag")
     List<Map<String, Object>> obtenerDeclaraciones();
 }

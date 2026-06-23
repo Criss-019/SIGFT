@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.Map;
 
-@FeignClient(name = "tramites-ms", path = "/api/v1/tramites-ms")
+@FeignClient(name = "tramites-ms", path = "/api/v1/tramites")
 public interface TramitesClient {
 
-    @GetMapping("/tramites/{id}")
+    @GetMapping("/{id}")
     Map<String, Object> obtenerTramitePorId(@PathVariable String id);
 }

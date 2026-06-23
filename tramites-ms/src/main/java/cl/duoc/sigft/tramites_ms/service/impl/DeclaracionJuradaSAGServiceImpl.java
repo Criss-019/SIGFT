@@ -42,7 +42,7 @@ public class DeclaracionJuradaSAGServiceImpl implements DeclaracionJuradaSAGServ
             throw new IllegalArgumentException("El pasajero con RUT " + dto.getRutPasajero() + " no existe. Registre al pasajero primero.");
         }
 
-        // 3. Mapear DTO a Entidad
+        // 3. Construir entidad y evaluar si requiere revisión SAG
         DeclaracionJuradaSAG declaracion = DeclaracionJuradaSAG.builder()
                 .idDeclaracion(dto.getIdDeclaracion())
                 .fechaRegistro(dto.getFechaRegistro())
@@ -52,8 +52,13 @@ public class DeclaracionJuradaSAGServiceImpl implements DeclaracionJuradaSAGServ
                 .rutPasajero(dto.getRutPasajero())
                 .build();
 
-        // 4. Aplicar regla de negocio (Valida si trae productos que requieran revisión)
-        declaracion.validarDeclaracion();
+        // 4. Aplicar regla de negocio: siempre se guarda; se marca si requiere revisión
+        boolean requiereRevision = declaracion.validarDeclaracion();
+        declaracion.setRequiereRevisionSAG(requiereRevision);
+
+        if (requiereRevision) {
+            log.warn("Declaración SAG {} requiere revisión presencial por personal del SAG.", dto.getIdDeclaracion());
+        }
 
         // 5. Guardar en base de datos y retornar
         DeclaracionJuradaSAG guardada = repository.save(declaracion);
@@ -90,7 +95,6 @@ public class DeclaracionJuradaSAGServiceImpl implements DeclaracionJuradaSAGServ
         log.info("Declaración SAG {} eliminada con éxito.", idDeclaracion);
     }
 
-    // Método utilitario privado
     private DeclaracionJuradaSAGDTO mapearADto(DeclaracionJuradaSAG entidad) {
         DeclaracionJuradaSAGDTO dto = new DeclaracionJuradaSAGDTO();
         dto.setIdDeclaracion(entidad.getIdDeclaracion());
@@ -99,6 +103,7 @@ public class DeclaracionJuradaSAGServiceImpl implements DeclaracionJuradaSAGServ
         dto.setTraeProductosVegetales(entidad.isTraeProductosVegetales());
         dto.setPoseeMascotas(entidad.isPoseeMascotas());
         dto.setRutPasajero(entidad.getRutPasajero());
+        dto.setRequiereRevisionSAG(entidad.isRequiereRevisionSAG());
         return dto;
     }
 }

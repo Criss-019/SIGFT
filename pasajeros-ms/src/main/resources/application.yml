@@ -1,7 +1,6 @@
 server:
   port: 8081
-  servlet:
-    context-path: /api/v1
+
 
 spring:
   application:
@@ -13,18 +12,25 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     
   jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    defer-datasource-initialization: true
     hibernate:
       ddl-auto: update
     show-sql: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+
 
 # Configuración de Logs 
 logging:
   level:
     cl.duoc.sigft.pasajeros_ms: INFO
     
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true

@@ -1,5 +1,18 @@
 package cl.duoc.sigft.reportes_ms.controller;
 
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import cl.duoc.sigft.reportes_ms.dto.ReporteDTO;
 import cl.duoc.sigft.reportes_ms.dto.SolicitudReporteDTO;
 import cl.duoc.sigft.reportes_ms.model.FormatoReporte;
@@ -8,15 +21,10 @@ import cl.duoc.sigft.reportes_ms.service.ReporteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/reportes")
+@RequestMapping("/api/v1/reportes")
 @RequiredArgsConstructor
 public class ReporteController {
 
@@ -60,7 +68,7 @@ public class ReporteController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ReporteDTO> actualizar(@PathVariable Long id,
-                                                  @Valid @RequestBody ReporteDTO dto) {
+                                                @Valid @RequestBody ReporteDTO dto) {
         log.info("Capa Controller - PUT /reportes/{}", id);
         return ResponseEntity.ok(service.actualizar(id, dto));
     }

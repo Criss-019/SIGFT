@@ -16,7 +16,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/integraciones")
+@RequestMapping("/api/v1/integraciones")
 @RequiredArgsConstructor
 public class RegistroIntegracionController {
 

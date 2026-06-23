@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/vehiculos")
+@RequestMapping("/api/v1/vehiculos")
 @RequiredArgsConstructor
 public class VehiculoController {
     private final VehiculoService service;

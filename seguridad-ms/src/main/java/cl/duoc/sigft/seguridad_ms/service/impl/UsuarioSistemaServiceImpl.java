@@ -2,13 +2,17 @@ package cl.duoc.sigft.seguridad_ms.service.impl;
 
 import cl.duoc.sigft.seguridad_ms.dto.CrearUsuarioDTO;
 import cl.duoc.sigft.seguridad_ms.dto.LoginRequestDTO;
+import cl.duoc.sigft.seguridad_ms.dto.LoginResponseDTO;
 import cl.duoc.sigft.seguridad_ms.dto.UsuarioSistemaDTO;
 import cl.duoc.sigft.seguridad_ms.model.RolUsuario;
 import cl.duoc.sigft.seguridad_ms.model.UsuarioSistema;
 import cl.duoc.sigft.seguridad_ms.repository.UsuarioSistemaRepository;
 import cl.duoc.sigft.seguridad_ms.service.UsuarioSistemaService;
+import cl.duoc.sigft.seguridad_ms.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +26,11 @@ import java.util.stream.Collectors;
 public class UsuarioSistemaServiceImpl implements UsuarioSistemaService {
 
     private final UsuarioSistemaRepository repository;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+
+    @Value("${app.jwt.expiration-ms}")
+    private long jwtExpirationMs;
 
     @Override
     @Transactional
@@ -37,12 +46,9 @@ public class UsuarioSistemaServiceImpl implements UsuarioSistemaService {
             throw new IllegalArgumentException("El email ya está registrado: " + dto.getEmail());
         }
 
-        // Hash simulado; en producción usar BCryptPasswordEncoder
-        String hashSimulado = "$2a$12$hash_" + dto.getPassword().hashCode();
-
         UsuarioSistema usuario = UsuarioSistema.builder()
                 .username(dto.getUsername())
-                .passwordHash(hashSimulado)
+                .passwordHash(passwordEncoder.encode(dto.getPassword()))
                 .nombreCompleto(dto.getNombreCompleto())
                 .email(dto.getEmail())
                 .rol(dto.getRol())
@@ -135,8 +141,9 @@ public class UsuarioSistemaServiceImpl implements UsuarioSistemaService {
 
     @Override
     @Transactional
-    public UsuarioSistemaDTO autenticar(LoginRequestDTO loginRequest) {
+    public LoginResponseDTO autenticar(LoginRequestDTO loginRequest) {
         log.info("Capa Service - Intento de autenticacion para usuario: {}", loginRequest.getUsername());
+
         UsuarioSistema usuario = repository.findByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new RuntimeException("Credenciales inválidas"));
 
@@ -145,17 +152,24 @@ public class UsuarioSistemaServiceImpl implements UsuarioSistemaService {
             throw new RuntimeException("La cuenta está desactivada. Contacte al administrador.");
         }
 
-        // En producción usar BCrypt: passwordEncoder.matches(raw, hash)
-        String hashIngresado = "$2a$12$hash_" + loginRequest.getPassword().hashCode();
-        if (!hashIngresado.equals(usuario.getPasswordHash())) {
+        if (!passwordEncoder.matches(loginRequest.getPassword(), usuario.getPasswordHash())) {
             log.warn("Capa Service - Contraseña incorrecta para usuario: {}", loginRequest.getUsername());
             throw new RuntimeException("Credenciales inválidas");
         }
 
         usuario.setFechaUltimoAcceso(LocalDateTime.now());
         repository.save(usuario);
-        log.info("Capa Service - Autenticacion exitosa para usuario: {}", loginRequest.getUsername());
-        return mapearADto(usuario);
+
+        String token = jwtUtil.generarToken(usuario.getUsername(), usuario.getRol().name());
+        log.info("Capa Service - Autenticacion exitosa para usuario: {}", usuario.getUsername());
+
+        return LoginResponseDTO.builder()
+                .token(token)
+                .username(usuario.getUsername())
+                .nombreCompleto(usuario.getNombreCompleto())
+                .rol(usuario.getRol())
+                .expiresIn(jwtExpirationMs)
+                .build();
     }
 
     private UsuarioSistemaDTO mapearADto(UsuarioSistema u) {

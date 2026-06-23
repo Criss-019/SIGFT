@@ -1,7 +1,6 @@
 server:
   port: 8085
-  servlet:
-    context-path: /api/v1/integracion-ms
+
 
 spring:
   application:

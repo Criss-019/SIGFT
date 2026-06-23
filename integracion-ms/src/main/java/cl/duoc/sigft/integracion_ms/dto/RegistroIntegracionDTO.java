@@ -6,7 +6,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-
+@Data
 @Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class RegistroIntegracionDTO {
 

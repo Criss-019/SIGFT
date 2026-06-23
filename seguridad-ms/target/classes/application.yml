@@ -1,7 +1,6 @@
 server:
   port: 8083
-  servlet:
-    context-path: /api/v1/seguridad-ms
+
 
 spring:
   application:
@@ -16,6 +15,12 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+# JWT — en producción sobreescribir con variable de entorno JWT_SECRET
+app:
+  jwt:
+    secret: ${JWT_SECRET:c2lnZnQtc2VjcmV0LWtleS1wYXJhLWRlc2Fycm9sbG8tMjAyNS1taW5pbW8tMzJieXRlcw==}
+    expiration-ms: 86400000  # 24 horas
 
 logging:
   level:

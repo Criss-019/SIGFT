@@ -2,6 +2,7 @@ package cl.duoc.sigft.pasajeros_ms.dto;
 
 import java.util.List;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -21,6 +22,10 @@ public class PasajeroDTO {
 
     @NotBlank(message = "La nacionalidad es obligatoria")
     private String nacionalidad;
+
+    @NotBlank(message = "El email es obligatorio")
+    @Email(message = "El formato del email no es válido (ejemplo: usuario@correo.cl)")
+    private String email;
 
     // Solo para visualización en GET, al hacer POST se ignora si va vacío
     private List<VehiculoDTO> vehiculos;
