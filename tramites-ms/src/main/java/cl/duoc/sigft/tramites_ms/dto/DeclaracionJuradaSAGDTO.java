@@ -18,6 +18,7 @@ public class DeclaracionJuradaSAGDTO {
     private boolean traeProductosAnimales;
     private boolean traeProductosVegetales;
     private boolean poseeMascotas;
+    private boolean requiereRevisionSAG;
 
     @NotBlank(message = "El RUT del pasajero es obligatorio")
     @Pattern(regexp = "^[0-9]{7,8}-[0-9Kk]$", message = "Formato de RUT inválido")

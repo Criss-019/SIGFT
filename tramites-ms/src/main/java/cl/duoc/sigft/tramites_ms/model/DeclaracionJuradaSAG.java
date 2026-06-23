@@ -39,11 +39,12 @@ public class DeclaracionJuradaSAG {
     @Column(name = "rut_pasajero", nullable = false, length = 15)
     private String rutPasajero; 
 
+    @Column(name = "requiere_revision")
+    private boolean requiereRevisionSAG;
+
     // Método exigido en el diagrama (void)
     public void validarDeclaracion() {
-        if (traeProductosAnimales || traeProductosVegetales || poseeMascotas) {
-            throw new IllegalArgumentException("Declaración requiere revisión presencial por personal del SAG.");
-        }
+        this.requiereRevisionSAG = (traeProductosAnimales || traeProductosVegetales || poseeMascotas);
     }
 
 }

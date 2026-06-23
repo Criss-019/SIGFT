@@ -53,10 +53,9 @@ public class DeclaracionJuradaSAGServiceImpl implements DeclaracionJuradaSAGServ
                 .build();
 
         // 4. Aplicar regla de negocio: siempre se guarda; se marca si requiere revisión
-        boolean requiereRevision = declaracion.validarDeclaracion();
-        declaracion.setRequiereRevisionSAG(requiereRevision);
+        declaracion.validarDeclaracion();
 
-        if (requiereRevision) {
+        if (declaracion.isRequiereRevisionSAG()) {
             log.warn("Declaración SAG {} requiere revisión presencial por personal del SAG.", dto.getIdDeclaracion());
         }
 
