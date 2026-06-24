@@ -8,5 +8,6 @@ public interface DeclaracionJuradaSAGService {
     DeclaracionJuradaSAGDTO registrar(DeclaracionJuradaSAGDTO dto);
     DeclaracionJuradaSAGDTO obtenerPorId(String id);
     List<DeclaracionJuradaSAGDTO> obtenerTodas();
+    List<DeclaracionJuradaSAGDTO> obtenerPorRutPasajero(String rutPasajero);
     void eliminar(String id);
 }

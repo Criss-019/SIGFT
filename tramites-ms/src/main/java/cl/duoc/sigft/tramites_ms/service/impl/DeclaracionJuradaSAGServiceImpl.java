@@ -84,6 +84,15 @@ public class DeclaracionJuradaSAGServiceImpl implements DeclaracionJuradaSAGServ
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<DeclaracionJuradaSAGDTO> obtenerPorRutPasajero(String rutPasajero) {
+        log.info("Capa Service - Buscando Declaraciones SAG para pasajero RUT: {}", rutPasajero);
+        return repository.findByRutPasajeroOrderByFechaRegistroDesc(rutPasajero).stream()
+                .map(this::mapearADto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public void eliminar(String idDeclaracion) {
         log.info("Capa Service - Intentando eliminar Declaración SAG con ID: {}", idDeclaracion);

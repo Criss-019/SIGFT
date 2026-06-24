@@ -40,6 +40,13 @@ public class DeclaracionJuradaSAGController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/pasajero/{rut}")
+    public ResponseEntity<List<DeclaracionJuradaSAGDTO>> obtenerPorRutPasajero(@PathVariable("rut") String rutPasajero) {
+        log.info("REST Request - GET /api/v1/declaraciones-sag/pasajero/{}", rutPasajero);
+        List<DeclaracionJuradaSAGDTO> response = service.obtenerPorRutPasajero(rutPasajero);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     public ResponseEntity<List<DeclaracionJuradaSAGDTO>> obtenerTodas() {
         log.info("REST Request - GET /api/v1/declaraciones-sag");

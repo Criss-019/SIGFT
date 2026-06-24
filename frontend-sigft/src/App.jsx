@@ -52,22 +52,69 @@ export default function App() {
 
   const VistaPortalViajero = () => {
     const [formData, setFormData] = useState({
-      rutPasaporte: '',
+      rut: '',
       nombres: '',
       apellidos: '',
+      edad: '',
+      nacionalidad: '',
+      email: '',
       patente: '',
       traeMenores: 'no',
-      declaracionSag: 'no'
+      traeAnimales: 'no',
+      traeVegetales: 'no',
+      poseeMascotas: 'no'
     });
+    const [isLoading, setIsLoading] = useState(false);
+    const API_URL = import.meta.env.VITE_API_GATEWAY_URL || 'http://localhost:8080';
 
     const handleChange = (e) => setFormData({...formData, [e.target.name]: e.target.value});
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
-      const qrMock = "SIGFT-" + Math.floor(Math.random() * 1000000);
-      setDatosDeclaracion(formData);
-      setCodigoGenerado(qrMock);
-      setVistaActual('qr-generado');
+      setIsLoading(true);
+
+      try {
+        // 1. Crear Pasajero
+        const pasajeroPayload = {
+          rut: formData.rut,
+          nombre: `${formData.nombres} ${formData.apellidos}`,
+          edad: parseInt(formData.edad),
+          nacionalidad: formData.nacionalidad,
+          email: formData.email
+        };
+
+        await fetch(`${API_URL}/api/v1/pasajeros`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pasajeroPayload)
+        });
+
+        // 2. Crear Declaración SAG
+        const idDeclaracion = `SAG-${Date.now()}`;
+        const sagPayload = {
+          idDeclaracion: idDeclaracion,
+          fechaRegistro: new Date().toISOString(),
+          traeProductosAnimales: formData.traeAnimales === 'si',
+          traeProductosVegetales: formData.traeVegetales === 'si',
+          poseeMascotas: formData.poseeMascotas === 'si',
+          rutPasajero: formData.rut
+        };
+
+        await fetch(`${API_URL}/api/v1/declaraciones-sag`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sagPayload)
+        });
+
+        setDatosDeclaracion(formData);
+        setCodigoGenerado(idDeclaracion);
+        setVistaActual('qr-generado');
+      } catch (error) {
+        console.error("Error al registrar:", error);
+        alert("Ocurrió un error de conexión con los microservicios.");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     return (
@@ -85,7 +132,7 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">RUT o Pasaporte</label>
-                <input required type="text" name="rutPasaporte" onChange={handleChange} className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="12.345.678-9" />
+                <input required type="text" name="rut" onChange={handleChange} className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="12.345.678-9" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Patente Vehículo (Opcional)</label>
@@ -99,6 +146,18 @@ export default function App() {
                 <label className="block text-sm font-medium text-slate-700 mb-1">Apellidos</label>
                 <input required type="text" name="apellidos" onChange={handleChange} className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Edad</label>
+                <input required type="number" name="edad" onChange={handleChange} className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Nacionalidad</label>
+                <input required type="text" name="nacionalidad" onChange={handleChange} className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Chilena" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                <input required type="email" name="email" onChange={handleChange} className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="correo@ejemplo.com" />
+              </div>
             </div>
 
             <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
@@ -109,16 +168,36 @@ export default function App() {
               </div>
             </div>
 
-            <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-              <label className="block text-sm font-medium text-slate-800 mb-2">Declaración SAG: ¿Trae productos de origen animal o vegetal?</label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2"><input type="radio" name="declaracionSag" value="si" onChange={handleChange} /> Sí</label>
-                <label className="flex items-center gap-2"><input defaultChecked type="radio" name="declaracionSag" value="no" onChange={handleChange} /> No</label>
+            <div className="p-4 bg-orange-50 rounded-lg border border-orange-200 space-y-4">
+              <h3 className="font-bold text-slate-800">Declaración Jurada SAG</h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-2">¿Trae productos de origen animal?</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2"><input type="radio" name="traeAnimales" value="si" onChange={handleChange} /> Sí</label>
+                  <label className="flex items-center gap-2"><input defaultChecked type="radio" name="traeAnimales" value="no" onChange={handleChange} /> No</label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-2">¿Trae productos de origen vegetal?</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2"><input type="radio" name="traeVegetales" value="si" onChange={handleChange} /> Sí</label>
+                  <label className="flex items-center gap-2"><input defaultChecked type="radio" name="traeVegetales" value="no" onChange={handleChange} /> No</label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-800 mb-2">¿Viaja con mascotas (perros, gatos, hurones, aves)?</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2"><input type="radio" name="poseeMascotas" value="si" onChange={handleChange} /> Sí</label>
+                  <label className="flex items-center gap-2"><input defaultChecked type="radio" name="poseeMascotas" value="no" onChange={handleChange} /> No</label>
+                </div>
               </div>
             </div>
 
-            <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors">
-              Generar Código QR
+            <button disabled={isLoading} type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+              {isLoading ? 'Conectando con Microservicios...' : 'Generar Código QR'}
             </button>
           </form>
         </div>
@@ -150,20 +229,45 @@ export default function App() {
     const [resultado, setResultado] = useState(null);
     const [cargando, setCargando] = useState(false);
 
-    const buscarViajero = (e) => {
+    const API_URL = import.meta.env.VITE_API_GATEWAY_URL || 'http://localhost:8080';
+
+    const buscarViajero = async (e) => {
       e.preventDefault();
       setCargando(true);
+      setResultado(null);
       
-      setTimeout(() => {
+      try {
+        // 1. Obtener pasajero
+        const pasajeroRes = await fetch(`${API_URL}/api/v1/pasajeros/${busqueda}`);
+        if (!pasajeroRes.ok) throw new Error('Pasajero no encontrado');
+        const pasajero = await pasajeroRes.json();
+
+        // 2. Obtener estado SAG
+        const sagRes = await fetch(`${API_URL}/api/v1/declaraciones-sag/pasajero/${busqueda}`);
+        let estadoSAG = 'Sin Declaración';
+        if (sagRes.ok) {
+          const declaraciones = await sagRes.json();
+          if (declaraciones.length > 0) {
+            estadoSAG = declaraciones[0].requiereRevisionSAG ? 'Revisión Requerida' : 'Aprobado';
+          }
+        }
+
         setResultado({
-          ...datosDeclaracion,
-          rut: busqueda,
+          rutPasaporte: pasajero.rut,
+          nombres: pasajero.nombre,
+          apellidos: '',
+          patente: pasajero.vehiculos?.length > 0 ? pasajero.vehiculos[0].patente : null,
+          traeMenores: 'no', // Se asume no para la demo actual
           estadoPDI: 'Aprobado',
-          estadoSAG: datosDeclaracion?.declaracionSag === 'si' ? 'Revisión Requerida' : 'Aprobado',
+          estadoSAG: estadoSAG,
           estadoAduana: 'Aprobado'
         });
+      } catch (error) {
+        console.error("Error al buscar viajero:", error);
+        alert("No se encontró información para el RUT ingresado en el sistema.");
+      } finally {
         setCargando(false);
-      }, 1000);
+      }
     };
 
     return (
