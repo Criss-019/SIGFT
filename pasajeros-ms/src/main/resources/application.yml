@@ -1,13 +1,13 @@
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
 
 
 spring:
   application:
     name: pasajeros-ms
   datasource:
-    url: jdbc:mysql://localhost:3306/pasajeros_db?createDatabaseIfNotExist=true&useSSL=false
-    username: root
+    url: ${DB_URL:jdbc:mysql://localhost:3306/pasajeros_db?createDatabaseIfNotExist=true&useSSL=false}
+    username: ${DB_USER:root}
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
     
@@ -21,7 +21,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
     fetch-registry: true
     register-with-eureka: true
   instance:
