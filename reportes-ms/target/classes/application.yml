@@ -1,13 +1,13 @@
 server:
-  port: 8084
+  port: ${SERVER_PORT:8084}
 
 
 spring:
   application:
     name: reportes-ms
   datasource:
-    url: jdbc:mysql://localhost:3306/reportes_db?createDatabaseIfNotExist=true&useSSL=false
-    username: root
+    url: ${DB_URL:jdbc:mysql://localhost:3306/reportes_db?createDatabaseIfNotExist=true&useSSL=false}
+    username: ${DB_USER:root}
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
@@ -23,7 +23,7 @@ logging:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
   instance:
     prefer-ip-address: true
 
