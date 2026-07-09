@@ -1,0 +1,216 @@
+services:
+
+  # ─────────────────────────────────────────────
+  # Base de datos MySQL (única instancia compartida)
+  # ─────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: sigft-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: sigft_root_2025
+      MYSQL_USER: sigft_user
+      MYSQL_PASSWORD: sigft_pass_2025
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psigft_root_2025"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sigft-network
+
+  # ─────────────────────────────────────────────
+  # Eureka Server — Service Registry
+  # ─────────────────────────────────────────────
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: sigft-eureka
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    environment:
+      PORT: 8761
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8761/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    networks:
+      - sigft-network
+
+  # ─────────────────────────────────────────────
+  # API Gateway — Punto de entrada único
+  # ─────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: sigft-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      EUREKA_URL: http://eureka-server:8761/eureka/
+      FRONTEND_URL: http://localhost:80
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - sigft-network
+
+  # ─────────────────────────────────────────────
+  # Microservicio: Pasajeros
+  # ─────────────────────────────────────────────
+  pasajeros-ms:
+    build:
+      context: ./pasajeros-ms
+      dockerfile: Dockerfile
+    container_name: sigft-pasajeros
+    restart: unless-stopped
+    environment:
+      PORT: 8081
+      DB_URL: jdbc:mysql://mysql:3306/pasajeros_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      DB_USER: sigft_user
+      DB_PASSWORD: sigft_pass_2025
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - sigft-network
+
+  # ─────────────────────────────────────────────
+  # Microservicio: Trámites
+  # ─────────────────────────────────────────────
+  tramites-ms:
+    build:
+      context: ./tramites-ms
+      dockerfile: Dockerfile
+    container_name: sigft-tramites
+    restart: unless-stopped
+    environment:
+      PORT: 8082
+      DB_URL: jdbc:mysql://mysql:3306/tramites_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      DB_USER: sigft_user
+      DB_PASSWORD: sigft_pass_2025
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - sigft-network
+
+  # ─────────────────────────────────────────────
+  # Microservicio: Seguridad
+  # ─────────────────────────────────────────────
+  seguridad-ms:
+    build:
+      context: ./seguridad-ms
+      dockerfile: Dockerfile
+    container_name: sigft-seguridad
+    restart: unless-stopped
+    environment:
+      PORT: 8083
+      DB_URL: jdbc:mysql://mysql:3306/seguridad_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      DB_USER: sigft_user
+      DB_PASSWORD: sigft_pass_2025
+      EUREKA_URL: http://eureka-server:8761/eureka/
+      JWT_SECRET: c2lnZnQtc2VjcmV0LWtleS1wYXJhLWRlc2Fycm9sbG8tMjAyNS1taW5pbW8tMzJieXRlcw==
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - sigft-network
+
+  # ─────────────────────────────────────────────
+  # Microservicio: Reportes
+  # ─────────────────────────────────────────────
+  reportes-ms:
+    build:
+      context: ./reportes-ms
+      dockerfile: Dockerfile
+    container_name: sigft-reportes
+    restart: unless-stopped
+    environment:
+      PORT: 8084
+      DB_URL: jdbc:mysql://mysql:3306/reportes_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      DB_USER: sigft_user
+      DB_PASSWORD: sigft_pass_2025
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - sigft-network
+
+  # ─────────────────────────────────────────────
+  # Microservicio: Integración
+  # ─────────────────────────────────────────────
+  integracion-ms:
+    build:
+      context: ./integracion-ms
+      dockerfile: Dockerfile
+    container_name: sigft-integracion
+    restart: unless-stopped
+    environment:
+      PORT: 8085
+      DB_URL: jdbc:mysql://mysql:3306/integracion_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      DB_USER: sigft_user
+      DB_PASSWORD: sigft_pass_2025
+      EUREKA_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - sigft-network
+
+  # ─────────────────────────────────────────────
+  # Frontend React — Servido con Nginx
+  # ─────────────────────────────────────────────
+  frontend-sigft:
+    build:
+      context: ./frontend-sigft
+      dockerfile: Dockerfile
+      args:
+        VITE_API_GATEWAY_URL: http://localhost:8080
+    container_name: sigft-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - sigft-network
+
+# ─────────────────────────────────────────────
+# Volúmenes
+# ─────────────────────────────────────────────
+volumes:
+  mysql_data:
+    driver: local
+
+# ─────────────────────────────────────────────
+# Red interna compartida entre todos los servicios
+# ─────────────────────────────────────────────
+networks:
+  sigft-network:
+    driver: bridge

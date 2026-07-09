@@ -3,7 +3,6 @@ import {
   ShieldCheck,
   User,
   FileText,
-  QrCode,
   CheckCircle,
   XCircle,
   Search,
@@ -17,10 +16,21 @@ import {
   Shield,
   Fingerprint,
   Leaf,
-  Package
+  Package,
+  FileSpreadsheet
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 const API_URL = import.meta.env.VITE_API_GATEWAY_URL || 'http://localhost:8080';
+
+const limpiarRut = (rut) => {
+  if (!rut) return '';
+  let valor = rut.replace(/\./g, '').replace(/\s+/g, '').replace(/-/g, '');
+  if (valor.length < 2) return valor;
+  const cuerpo = valor.slice(0, -1);
+  const dv = valor.slice(-1);
+  return `${cuerpo}-${dv}`;
+};
 
 // ─── Componente: Hora actual ────────────────────────────────────────
 function LiveClock() {
@@ -43,12 +53,12 @@ function RadioGroup({ name, label, onChange, defaultNo = true }) {
       <label className="field-label">{label}</label>
       <div className="flex gap-3">
         <label className="radio-option flex-1">
-          <input type="radio" name={name} value="si" onChange={onChange} className="accent-indigo-400" />
-          <span className="text-sm font-medium text-slate-200">Sí</span>
+          <input type="radio" name={name} value="si" onChange={onChange} className="accent-indigo-600" />
+          <span className="text-sm font-semibold text-slate-700">Sí</span>
         </label>
         <label className="radio-option flex-1">
-          <input type="radio" name={name} value="no" onChange={onChange} defaultChecked={defaultNo} className="accent-indigo-400" />
-          <span className="text-sm font-medium text-slate-200">No</span>
+          <input type="radio" name={name} value="no" onChange={onChange} defaultChecked={defaultNo} className="accent-indigo-600" />
+          <span className="text-sm font-semibold text-slate-700">No</span>
         </label>
       </div>
     </div>
@@ -69,92 +79,81 @@ function FormField({ label, children }) {
 function VistaSeleccionRol({ setVista }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden animate-fade-in">
-      {/* Orbes decorativos */}
-      <div className="gradient-orb w-96 h-96 bg-indigo-600 -top-32 -left-32" />
-      <div className="gradient-orb w-80 h-80 bg-blue-700 -bottom-20 -right-20" />
-      <div className="gradient-orb w-64 h-64 bg-violet-600 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+      {/* Elementos decorativos institucionales */}
+      <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: 'linear-gradient(90deg, #004481 0%, #0082c9 50%, #d81e05 100%)' }} />
 
       {/* Header */}
-      <div className="text-center mb-12 relative z-10 animate-slide-up">
-        <div className="flex items-center justify-center mb-6">
+      <div className="text-center mb-10 relative z-10 animate-slide-up">
+        <div className="flex items-center justify-center mb-5">
           <div className="relative">
-            <div className="absolute inset-0 bg-indigo-500 blur-2xl opacity-40 rounded-full scale-150" />
-            <div className="relative p-5 rounded-2xl" style={{background: 'linear-gradient(135deg, rgba(56,57,121,0.6) 0%, rgba(32,78,115,0.6) 100%)', border: '1px solid rgba(255,255,255,0.15)'}}>
-              <ShieldCheck className="w-14 h-14 text-indigo-300" />
+            <div className="absolute inset-0 bg-blue-500/10 blur-2xl rounded-full scale-150" />
+            <div className="relative p-5 rounded-3xl" style={{background: 'linear-gradient(135deg, #004481 0%, #002d56 100%)', boxShadow: '0 10px 25px rgba(0, 68, 129, 0.25)'}}>
+              <ShieldCheck className="w-12 h-12 text-white" />
             </div>
           </div>
         </div>
-        <h1 className="text-5xl font-extrabold tracking-tight mb-3"
-          style={{background: 'linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 50%, #818cf8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>
-          SIGFT
+        <h1 className="text-4xl font-black tracking-tight mb-2 text-slate-900" style={{ letterSpacing: '-0.03em' }}>
+          SISTEMA <span style={{ color: '#004481' }}>SIGFT</span>
         </h1>
-        <p className="text-slate-400 text-lg font-medium">Sistema de Control y Gestión Fronteriza Terrestre</p>
-        <div className="flex items-center justify-center gap-4 mt-4 text-xs text-slate-500">
-          <span className="flex items-center gap-1.5"><Globe className="w-3 h-3" /> Chile — Paso Fronterizo</span>
-          <span className="w-1 h-1 rounded-full bg-slate-600" />
-          <span className="flex items-center gap-1.5"><Clock className="w-3 h-3" /><LiveClock /></span>
+        <p className="text-slate-600 text-base font-medium max-w-md mx-auto">
+          Control de Cruce e Integración de Tránsito Fronterizo Terrestre
+        </p>
+        <div className="flex items-center justify-center gap-3 mt-4 text-xs text-slate-500 font-semibold bg-white/60 backdrop-blur px-4 py-1.5 rounded-full border border-slate-200 inline-flex mx-auto">
+          <span className="flex items-center gap-1.5 text-slate-600"><Globe className="w-3.5 h-3.5 text-blue-600" /> Aduana & Paso Fronterizo</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+          <span className="flex items-center gap-1.5 text-slate-600"><Clock className="w-3.5 h-3.5 text-slate-500" /><LiveClock /></span>
         </div>
       </div>
 
       {/* Cards de roles */}
-      <div className="grid md:grid-cols-2 gap-5 w-full max-w-3xl relative z-10">
+      <div className="grid md:grid-cols-2 gap-6 w-full max-w-3xl relative z-10">
         {/* Viajero */}
         <button
           onClick={() => setVista('portal-viajero')}
-          className="group text-left p-8 rounded-3xl transition-all duration-300 hover:-translate-y-1 animate-slide-up"
-          style={{
-            background: 'linear-gradient(135deg, rgba(56,57,121,0.4) 0%, rgba(32,78,115,0.3) 100%)',
-            border: '1px solid rgba(99,102,241,0.2)',
-            boxShadow: '0 0 0 0 rgba(99,102,241,0.4)',
-            animationDelay: '0.1s'
-          }}
-          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 20px 60px rgba(99,102,241,0.25)'}
-          onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 0 0 rgba(99,102,241,0.4)'}
+          className="role-card role-card-indigo flex flex-col justify-between animate-slide-up text-left"
+          style={{ animationDelay: '0.1s' }}
         >
-          <div className="icon-glow-blue inline-flex mb-5">
-            <User className="w-7 h-7 text-indigo-300" />
+          <div>
+            <div className="icon-wrap icon-indigo inline-flex mb-5">
+              <User className="w-6 h-6" />
+            </div>
+            <h2 className="text-xl font-extrabold text-slate-900 mb-2 flex items-center justify-between">
+              Declaración de Viajero
+              <ChevronRight className="w-5 h-5 text-indigo-700" />
+            </h2>
+            <p className="text-slate-600 text-sm leading-relaxed">Complete su declaración jurada del Servicio Agrícola y Ganadero (SAG) antes de llegar al paso fronterizo.</p>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2 flex items-center justify-between">
-            Soy Viajero
-            <ChevronRight className="w-5 h-5 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </h2>
-          <p className="text-slate-400 text-sm leading-relaxed">Generar tu declaración jurada anticipada y obtener el código QR para el cruce fronterizo.</p>
-          <div className="mt-5 flex gap-2 flex-wrap">
-            <span className="text-xs px-2 py-1 rounded-md text-indigo-400 font-medium" style={{background:'rgba(99,102,241,0.1)'}}>Declaración SAG</span>
-            <span className="text-xs px-2 py-1 rounded-md text-indigo-400 font-medium" style={{background:'rgba(99,102,241,0.1)'}}>Código QR</span>
+          <div className="mt-8 flex gap-2 flex-wrap">
+            <span className="badge badge-blue">Formulario Digital</span>
+            <span className="badge badge-neutral">Obtener código QR</span>
           </div>
         </button>
 
         {/* Funcionario */}
         <button
           onClick={() => setVista('portal-funcionario')}
-          className="group text-left p-8 rounded-3xl transition-all duration-300 hover:-translate-y-1 animate-slide-up"
-          style={{
-            background: 'linear-gradient(135deg, rgba(5,150,105,0.2) 0%, rgba(6,95,70,0.15) 100%)',
-            border: '1px solid rgba(16,185,129,0.2)',
-            animationDelay: '0.2s'
-          }}
-          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 20px 60px rgba(16,185,129,0.2)'}
-          onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+          className="role-card role-card-emerald flex flex-col justify-between animate-slide-up text-left"
+          style={{ animationDelay: '0.2s' }}
         >
-          <div className="icon-glow-emerald inline-flex mb-5">
-            <ShieldCheck className="w-7 h-7 text-emerald-400" />
+          <div>
+            <div className="icon-wrap icon-emerald inline-flex mb-5">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <h2 className="text-xl font-extrabold text-slate-900 mb-2 flex items-center justify-between">
+              Control Fronterizo (Funcionario)
+              <ChevronRight className="w-5 h-5 text-emerald-700" />
+            </h2>
+            <p className="text-slate-600 text-sm leading-relaxed">Herramienta de ventanilla única para oficiales de PDI, SAG y Aduanas. Inspección y aprobación de pasajeros.</p>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2 flex items-center justify-between">
-            Funcionario
-            <ChevronRight className="w-5 h-5 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </h2>
-          <p className="text-slate-400 text-sm leading-relaxed">Acceso para PDI, SAG y Aduanas. Validación en tiempo real de pasajeros y escaneo de QR.</p>
-          <div className="mt-5 flex gap-2 flex-wrap">
-            <span className="text-xs px-2 py-1 rounded-md text-emerald-400 font-medium" style={{background:'rgba(16,185,129,0.1)'}}>PDI</span>
-            <span className="text-xs px-2 py-1 rounded-md text-emerald-400 font-medium" style={{background:'rgba(16,185,129,0.1)'}}>SAG</span>
-            <span className="text-xs px-2 py-1 rounded-md text-emerald-400 font-medium" style={{background:'rgba(16,185,129,0.1)'}}>Aduanas</span>
+          <div className="mt-8 flex gap-2 flex-wrap">
+            <span className="badge badge-success">Ventanilla Única</span>
+            <span className="badge badge-neutral">Escanear QR</span>
           </div>
         </button>
       </div>
 
-      <p className="mt-10 text-xs text-slate-600 relative z-10">
-        © {new Date().getFullYear()} SIGFT — Gobierno de Chile · Versión 2.0
+      <p className="mt-16 text-xs font-semibold text-slate-500 relative z-10">
+        © {new Date().getFullYear()} SIGFT · Unidad de Control Fronterizo · Gobierno de Chile
       </p>
     </div>
   );
@@ -168,7 +167,6 @@ function VistaPortalViajero({ setVista, setDatosDeclaracion, setCodigoGenerado }
     traeMenores: 'no', traeAnimales: 'no', traeVegetales: 'no', poseeMascotas: 'no'
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState(1);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -176,19 +174,30 @@ function VistaPortalViajero({ setVista, setDatosDeclaracion, setCodigoGenerado }
     e.preventDefault();
     setIsLoading(true);
     try {
-      await fetch(`${API_URL}/api/v1/pasajeros`, {
+      const rutLimpio = limpiarRut(formData.rut);
+      
+      const pasajeroRes = await fetch(`${API_URL}/api/v1/pasajeros`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          rut: formData.rut,
+          rut: rutLimpio,
           nombre: `${formData.nombres} ${formData.apellidos}`,
           edad: parseInt(formData.edad),
           nacionalidad: formData.nacionalidad,
           email: formData.email
         })
       });
+
+      if (!pasajeroRes.ok) {
+        const errorData = await pasajeroRes.json();
+        const msg = errorData.rut || errorData.error || 'Error al registrar el pasajero.';
+        alert(`Error de validación: ${msg}`);
+        setIsLoading(false);
+        return;
+      }
+
       const idDeclaracion = `SAG-${Date.now()}`;
-      await fetch(`${API_URL}/api/v1/declaraciones-sag`, {
+      const sagRes = await fetch(`${API_URL}/api/v1/declaraciones-sag`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -197,13 +206,24 @@ function VistaPortalViajero({ setVista, setDatosDeclaracion, setCodigoGenerado }
           traeProductosAnimales: formData.traeAnimales === 'si',
           traeProductosVegetales: formData.traeVegetales === 'si',
           poseeMascotas: formData.poseeMascotas === 'si',
-          rutPasajero: formData.rut
+          rutPasajero: rutLimpio
         })
       });
-      setDatosDeclaracion(formData);
+
+      if (!sagRes.ok) {
+        const errorData = await sagRes.json();
+        const msg = errorData.error || 'Error al registrar declaración SAG.';
+        alert(`Error SAG: ${msg}`);
+        setIsLoading(false);
+        return;
+      }
+
+      const datosEnviados = { ...formData, rut: rutLimpio };
+      setDatosDeclaracion(datosEnviados);
       setCodigoGenerado(idDeclaracion);
       setVista('qr-generado');
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert('Error de conexión con los microservicios. Verifique la red.');
     } finally {
       setIsLoading(false);
@@ -212,49 +232,48 @@ function VistaPortalViajero({ setVista, setDatosDeclaracion, setCodigoGenerado }
 
   return (
     <div className="min-h-screen p-4 md:p-8 relative animate-fade-in">
-      <div className="gradient-orb w-80 h-80 bg-indigo-700 -top-20 -right-20 opacity-15" />
+      <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: 'linear-gradient(90deg, #004481 0%, #0082c9 50%, #d81e05 100%)' }} />
 
       {/* Navbar */}
       <div className="max-w-2xl mx-auto flex items-center justify-between mb-8">
         <button onClick={() => setVista('seleccionar-rol')} className="btn-secondary">
-          <ArrowLeft className="w-4 h-4" /> Inicio
+          <ArrowLeft className="w-4 h-4" /> Volver al Inicio
         </button>
-        <div className="flex items-center gap-2 text-xs text-slate-500">
-          <div className={`w-2 h-2 rounded-full ${step >= 1 ? 'bg-indigo-400' : 'bg-slate-700'}`} />
-          <div className={`w-8 h-px ${step >= 2 ? 'bg-indigo-400' : 'bg-slate-700'}`} />
-          <div className={`w-2 h-2 rounded-full ${step >= 2 ? 'bg-indigo-400' : 'bg-slate-700'}`} />
-          <div className={`w-8 h-px bg-slate-700`} />
-          <div className="w-2 h-2 rounded-full bg-slate-700" />
-          <span className="ml-2">Paso {step} de 3</span>
+        <div className="flex items-center gap-3">
+          <div className="step-dot step-dot-active">1</div>
+          <div className="w-6 h-[2px] bg-slate-300" />
+          <div className="step-dot step-dot-active">2</div>
+          <div className="w-6 h-[2px] bg-slate-300" />
+          <div className="step-dot step-dot-idle">3</div>
         </div>
       </div>
 
       <div className="max-w-2xl mx-auto">
         {/* Header card */}
-        <div className="glass p-6 mb-5 flex items-center gap-4 animate-slide-up">
-          <div className="icon-glow-blue">
-            <FileText className="w-6 h-6 text-indigo-300" />
+        <div className="glass p-6 mb-6 flex items-center gap-4 animate-slide-up">
+          <div className="icon-wrap icon-indigo">
+            <FileText className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Declaración de Cruce Fronterizo</h2>
-            <p className="text-sm text-slate-400">Complete todos los campos requeridos para generar su pase de cruce.</p>
+            <h2 className="text-xl font-extrabold text-slate-900">Declaración de Cruce Fronterizo</h2>
+            <p className="text-sm text-slate-500">Formulario obligatorio de declaración jurada conjunta (SAG / ADUANA).</p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 animate-slide-up" style={{animationDelay:'0.1s'}}>
+        <form onSubmit={handleSubmit} className="space-y-6 animate-slide-up" style={{animationDelay:'0.1s'}}>
           {/* Sección 1: Identificación */}
-          <div className="glass p-6">
-            <h3 className="text-sm font-semibold text-indigo-300 uppercase tracking-widest mb-5 flex items-center gap-2">
-              <Fingerprint className="w-4 h-4" /> Datos de Identificación
+          <div className="glass p-6 space-y-4">
+            <h3 className="section-header section-header-indigo">
+              <Fingerprint className="w-4.5 h-4.5" /> Datos de Identificación
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField label="RUT o Número de Pasaporte">
                 <input required type="text" name="rut" onChange={handleChange}
-                  className="input-field" placeholder="12.345.678-9" />
+                  className="input-field" placeholder="Ej: 12.345.678-9" />
               </FormField>
-              <FormField label="Patente del Vehículo (Opcional)">
+              <FormField label="Patente del Vehículo (Si aplica)">
                 <input type="text" name="patente" onChange={handleChange}
-                  className="input-field" placeholder="ABCD-12" />
+                  className="input-field" placeholder="Ej: ABCD-12" />
               </FormField>
               <FormField label="Nombres">
                 <input required type="text" name="nombres" onChange={handleChange} className="input-field" />
@@ -267,50 +286,50 @@ function VistaPortalViajero({ setVista, setDatosDeclaracion, setCodigoGenerado }
               </FormField>
               <FormField label="Nacionalidad">
                 <input required type="text" name="nacionalidad" onChange={handleChange}
-                  className="input-field" placeholder="Chilena" />
+                  className="input-field" placeholder="Ej: Chilena" />
               </FormField>
               <div className="md:col-span-2">
                 <FormField label="Correo Electrónico">
                   <input required type="email" name="email" onChange={handleChange}
-                    className="input-field" placeholder="correo@ejemplo.com" />
+                    className="input-field" placeholder="Ej: nombre@correo.com" />
                 </FormField>
               </div>
             </div>
           </div>
 
-          {/* Sección 2: Menores */}
+          {/* Sección 2: Acompañantes */}
           <div className="glass p-6">
-            <h3 className="text-sm font-semibold text-indigo-300 uppercase tracking-widest mb-5 flex items-center gap-2">
-              <User className="w-4 h-4" /> Acompañantes
+            <h3 className="section-header section-header-indigo">
+              <User className="w-4.5 h-4.5" /> Acompañantes
             </h3>
-            <RadioGroup name="traeMenores" label="¿Viaja con menores de edad?" onChange={handleChange} />
+            <RadioGroup name="traeMenores" label="¿Viaja acompañado de menores de edad?" onChange={handleChange} />
           </div>
 
           {/* Sección 3: SAG */}
-          <div className="glass p-6" style={{border: '1px solid rgba(245,158,11,0.2)', background: 'rgba(245,158,11,0.04)'}}>
-            <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-              <Leaf className="w-4 h-4" /> Declaración Jurada SAG
+          <div className="glass p-6" style={{border: '1px solid rgba(245,158,11,0.25)', background: 'rgba(245,158,11,0.02)'}}>
+            <h3 className="section-header section-header-amber">
+              <Leaf className="w-4.5 h-4.5" /> Declaración Jurada Silvoagropecuaria (SAG)
             </h3>
-            <p className="text-xs text-slate-500 mb-5">Declaro bajo juramento que la información proporcionada es verídica.</p>
+            <p className="text-xs text-slate-500 mb-4">Deberá declarar si transporta alguno de los siguientes elementos al ingresar al país:</p>
             <div className="space-y-4">
-              <RadioGroup name="traeAnimales" label="¿Trae productos de origen animal (carne, lácteos, huevos)?" onChange={handleChange} />
-              <RadioGroup name="traeVegetales" label="¿Trae productos de origen vegetal (frutas, semillas, plantas)?" onChange={handleChange} />
-              <RadioGroup name="poseeMascotas" label="¿Viaja con mascotas (perros, gatos, aves, hurones)?" onChange={handleChange} />
+              <RadioGroup name="traeAnimales" label="¿Trae productos de origen animal (carne, quesos, lácteos, embutidos, miel)?" onChange={handleChange} />
+              <RadioGroup name="traeVegetales" label="¿Trae productos de origen vegetal (frutas frescas, semillas, verduras, tierra, plantas)?" onChange={handleChange} />
+              <RadioGroup name="poseeMascotas" label="¿Viaja acompañado de mascotas domésticas (perro, gato)?" onChange={handleChange} />
             </div>
           </div>
 
           <button type="submit" disabled={isLoading} className="btn-primary w-full py-4 text-base">
             {isLoading ? (
               <span className="flex items-center gap-3">
-                <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
-                Conectando con microservicios...
+                Procesando Declaración...
               </span>
             ) : (
               <span className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5" /> Generar Código QR de Cruce
+                <Sparkles className="w-5 h-5" /> Enviar y Generar Código QR
               </span>
             )}
           </button>
@@ -324,53 +343,56 @@ function VistaPortalViajero({ setVista, setDatosDeclaracion, setCodigoGenerado }
 function VistaQR({ setVista, codigoGenerado, datosDeclaracion }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-6 relative animate-fade-in">
-      <div className="gradient-orb w-96 h-96 bg-emerald-700 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-15" />
+      <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: 'linear-gradient(90deg, #004481 0%, #0082c9 50%, #d81e05 100%)' }} />
 
       <div className="max-w-md w-full animate-scale-in">
-        <div className="glass p-8 text-center">
+        <div className="glass p-8 text-center flex flex-col items-center">
           {/* Ícono de éxito */}
-          <div className="relative inline-flex mb-6">
-            <div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-30 rounded-full scale-150" />
-            <div className="relative icon-glow-emerald p-2">
-              <CheckCircle className="w-12 h-12 text-emerald-400" />
+          <div className="relative inline-flex mb-5">
+            <div className="absolute inset-0 bg-emerald-500/10 blur-xl rounded-full scale-150" />
+            <div className="relative icon-wrap icon-emerald">
+              <CheckCircle className="w-10 h-10" />
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold text-white mb-1">¡Declaración Exitosa!</h2>
-          <p className="text-slate-400 text-sm mb-8">Presente este código en la ventanilla única fronteriza.</p>
+          <h2 className="text-2xl font-black text-slate-900 mb-1">¡Declaración Generada!</h2>
+          <p className="text-slate-500 text-sm mb-6">Su declaración se ha guardado en el sistema nacional.</p>
 
-          {/* QR placeholder */}
-          <div className="relative mb-6">
-            <div className="absolute inset-0 bg-indigo-500 opacity-10 blur-xl rounded-2xl" />
-            <div className="relative p-8 rounded-2xl flex items-center justify-center"
-              style={{background: 'rgba(255,255,255,0.05)', border: '2px dashed rgba(99,102,241,0.3)'}}>
-              <QrCode className="w-36 h-36 text-indigo-300" />
-            </div>
+          {/* Generador de QR Real */}
+          <div className="qr-container mb-6 bg-white p-4 rounded-xl border border-slate-200">
+            <QRCodeSVG
+              value={codigoGenerado}
+              size={190}
+              level={"H"}
+              fgColor="#002d56" /* Azul corporativo oscuro */
+              bgColor="#FFFFFF"
+              includeMargin={true}
+            />
           </div>
 
-          {/* ID */}
-          <div className="p-3 rounded-xl mb-6 font-mono text-sm text-indigo-300"
-            style={{background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)'}}>
-            {codigoGenerado}
+          {/* Identificador único */}
+          <div className="px-4 py-2 rounded-xl mb-6 font-mono text-sm text-slate-800 bg-slate-100 border border-slate-200 w-full text-center">
+            Código Trámite: <span className="font-bold">{codigoGenerado}</span>
           </div>
 
-          {/* Datos resumidos */}
+          {/* Resumen de Datos */}
           {datosDeclaracion && (
-            <div className="text-left p-4 rounded-xl mb-6 space-y-2"
-              style={{background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)'}}>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-3">Resumen del Cruce</p>
+            <div className="text-left w-full p-4 rounded-xl mb-6 space-y-2 bg-slate-50 border border-slate-200">
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold mb-2">Resumen de Identificación</p>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">RUT</span>
-                <span className="text-white font-medium">{datosDeclaracion.rut}</span>
+                <span className="text-slate-500 font-medium">Pasajero / RUT</span>
+                <span className="text-slate-900 font-mono font-bold">{datosDeclaracion.rut}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Nombre</span>
-                <span className="text-white font-medium">{datosDeclaracion.nombres} {datosDeclaracion.apellidos}</span>
+                <span className="text-slate-500 font-medium">Nombre Completo</span>
+                <span className="text-slate-900 font-bold">{datosDeclaracion.nombres} {datosDeclaracion.apellidos}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Nacionalidad</span>
-                <span className="text-white font-medium">{datosDeclaracion.nacionalidad}</span>
-              </div>
+              {datosDeclaracion.patente && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500 font-medium">Patente Vehículo</span>
+                  <span className="text-slate-900 font-mono font-bold">{datosDeclaracion.patente.toUpperCase()}</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -394,11 +416,13 @@ function VistaFuncionario({ setVista }) {
     setCargando(true);
     setResultado(null);
     try {
-      const pasajeroRes = await fetch(`${API_URL}/api/v1/pasajeros/${busqueda}`);
+      const rutLimpio = limpiarRut(busqueda);
+      
+      const pasajeroRes = await fetch(`${API_URL}/api/v1/pasajeros/${rutLimpio}`);
       if (!pasajeroRes.ok) throw new Error('No encontrado');
       const pasajero = await pasajeroRes.json();
 
-      const sagRes = await fetch(`${API_URL}/api/v1/declaraciones-sag/pasajero/${busqueda}`);
+      const sagRes = await fetch(`${API_URL}/api/v1/declaraciones-sag/pasajero/${rutLimpio}`);
       let estadoSAG = 'Sin Declaración';
       if (sagRes.ok) {
         const decls = await sagRes.json();
@@ -425,34 +449,35 @@ function VistaFuncionario({ setVista }) {
   const getVerifyProps = (estado) => {
     switch (estado) {
       case 'Aprobado':
-        return { card: 'verify-card-success', icon: 'icon-glow-emerald', iconEl: <CheckCircle className="w-5 h-5 text-emerald-400" />, badge: 'badge-success' };
+        return { card: 'verify-card-success', icon: 'icon-emerald', iconEl: <CheckCircle className="w-5 h-5" />, badge: 'badge-success' };
       case 'Revisión Requerida':
-        return { card: 'verify-card-warning', icon: 'icon-glow-amber', iconEl: <AlertTriangle className="w-5 h-5 text-amber-400" />, badge: 'badge-warning' };
+        return { card: 'verify-card-warning', icon: 'icon-amber', iconEl: <AlertTriangle className="w-5 h-5" />, badge: 'badge-warning' };
       case 'Sin Declaración':
-        return { card: 'verify-card-neutral', icon: 'icon-glow-neutral', iconEl: <FileText className="w-5 h-5 text-slate-400" />, badge: 'badge-neutral' };
+        return { card: 'verify-card-neutral', icon: 'icon-slate', iconEl: <FileText className="w-5 h-5" />, badge: 'badge-neutral' };
       default:
-        return { card: 'verify-card-danger', icon: 'icon-glow-red', iconEl: <XCircle className="w-5 h-5 text-red-400" />, badge: 'badge-danger' };
+        return { card: 'verify-card-danger', icon: 'icon-red', iconEl: <XCircle className="w-5 h-5" />, badge: 'badge-danger' };
     }
   };
 
   return (
     <div className="min-h-screen animate-fade-in">
+      <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: 'linear-gradient(90deg, #004481 0%, #0082c9 50%, #d81e05 100%)' }} />
+
       {/* Header */}
-      <header className="sticky top-0 z-50 px-6 py-4"
-        style={{background: 'rgba(10,14,26,0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.07)'}}>
+      <header className="sticky top-0 z-50 px-6 py-4 glass" style={{borderRadius: '0 0 20px 20px', borderTop: 'none'}}>
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="icon-glow-emerald">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            <div className="icon-wrap icon-indigo">
+              <ShieldCheck className="w-5 h-5 text-indigo-800" />
             </div>
             <div>
-              <h1 className="font-bold text-white leading-none">SIGFT Ventanilla Única</h1>
-              <p className="text-xs text-slate-500 mt-0.5">Portal de Verificación de Cruce</p>
+              <h1 className="font-extrabold text-slate-900 text-base leading-none">SIGFT Oficial</h1>
+              <p className="text-xs text-slate-500 mt-1">Inspección de Declaraciones e Ingreso Terrestre</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden md:flex items-center gap-1.5 text-xs text-slate-500">
-              <Clock className="w-3 h-3" /> <LiveClock />
+          <div className="flex items-center gap-4">
+            <span className="hidden md:flex items-center gap-1.5 text-xs text-slate-500 font-semibold bg-slate-100 px-3 py-1 rounded-full">
+              <Clock className="w-3.5 h-3.5 text-slate-600" /> <LiveClock />
             </span>
             <button onClick={() => setVista('seleccionar-rol')} className="btn-secondary text-sm">
               <LogOut className="w-4 h-4" /> Salir
@@ -464,99 +489,85 @@ function VistaFuncionario({ setVista }) {
       <main className="p-4 md:p-8 max-w-5xl mx-auto">
         {/* Buscador */}
         <div className="glass p-6 mb-6 animate-slide-up">
-          <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
-            <QrCode className="w-4 h-4 text-emerald-400" /> Escanear QR o Ingresar Documento
+          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <Search className="w-4 h-4" /> Control Aduanero / Buscar Pasajero
           </h2>
-          <form onSubmit={buscarViajero} className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-              <input
-                type="text" value={busqueda} required
-                onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="Ingrese RUT o código SIGFT..."
-                className="input-field pl-12"
-              />
-            </div>
-            <button type="submit" disabled={cargando}
-              className="px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
-              style={{background: 'linear-gradient(135deg, #059669, #047857)', boxShadow: '0 4px 20px rgba(5,150,105,0.4)'}}>
-              {cargando ? (
-                <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                </svg>
-              ) : <QrCode className="w-5 h-5" />}
-              {cargando ? 'Consultando...' : 'Verificar'}
+          <form onSubmit={buscarViajero} className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text" value={busqueda} required
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Ej: 12345678-9 (Sin puntos, con guión)"
+              className="input-field flex-1"
+            />
+            <button type="submit" disabled={cargando} className="btn-primary sm:w-auto">
+              {cargando ? 'Buscando...' : 'Consultar Documento'}
             </button>
           </form>
         </div>
 
         {/* Resultado */}
         {resultado && (
-          <div className="grid md:grid-cols-3 gap-5 animate-slide-up">
+          <div className="grid md:grid-cols-3 gap-6 animate-slide-up">
             {/* Ficha del pasajero */}
-            <div className="glass p-6">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-5 flex items-center gap-2">
-                <User className="w-3.5 h-3.5" /> Datos del Viajero
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">RUT / Pasaporte</p>
-                  <p className="font-bold text-white text-lg font-mono">{resultado.rut}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">Nombre Completo</p>
-                  <p className="font-semibold text-slate-200">{resultado.nombre}</p>
-                </div>
-                {resultado.patente && (
+            <div className="glass p-6 flex flex-col justify-between">
+              <div>
+                <h3 className="section-header section-header-indigo">
+                  <User className="w-4 h-4" /> Datos de Registro
+                </h3>
+                <div className="space-y-4 mt-4">
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Vehículo</p>
-                    <span className="font-mono text-sm font-bold px-3 py-1 rounded-lg text-white"
-                      style={{background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.15)'}}>
-                      {resultado.patente}
-                    </span>
+                    <p className="text-xs text-slate-500 mb-0.5">RUT / Identificación</p>
+                    <p className="font-bold text-slate-900 text-lg font-mono">{resultado.rut}</p>
                   </div>
-                )}
-                <div className="pt-2 border-t border-white/5">
-                  <span className="badge-success text-xs">
-                    <CheckCircle className="w-3 h-3" /> Registro Activo
-                  </span>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">Nombre Completo</p>
+                    <p className="font-bold text-slate-800">{resultado.nombre}</p>
+                  </div>
+                  {resultado.patente && (
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Vehículo Asociado</p>
+                      <span className="font-mono text-sm font-bold px-3 py-1 rounded-lg text-slate-800 bg-slate-100 border border-slate-200 inline-block">
+                        {resultado.patente.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                 </div>
+              </div>
+              <div className="pt-6 mt-6 border-t border-slate-100">
+                <span className="badge badge-success">
+                  <CheckCircle className="w-3.5 h-3.5" /> Estado: En Tránsito
+                </span>
               </div>
             </div>
 
             {/* Verificaciones */}
             <div className="md:col-span-2 space-y-3">
               {[
-                { label: 'Policía de Investigaciones (PDI)', sub: 'Validación de arraigo y antecedentes penales', estado: resultado.estadoPDI, icon: <Shield className="w-5 h-5" /> },
-                { label: 'Servicio Agrícola y Ganadero (SAG)', sub: 'Control fitozoosanitario de mercancías', estado: resultado.estadoSAG, icon: <Leaf className="w-5 h-5" /> },
-                { label: 'Aduanas de Chile', sub: 'Control de franquicias y declaración de mercancías', estado: resultado.estadoAduana, icon: <Package className="w-5 h-5" /> },
+                { label: 'Control Migratorio (PDI)', sub: 'Validación de identidad y libre tránsito', estado: resultado.estadoPDI, icon: <Shield className="w-5 h-5" /> },
+                { label: 'Inspección Sanitaria (SAG)', sub: 'Control fitozoosanitario e ingreso de especies', estado: resultado.estadoSAG, icon: <Leaf className="w-5 h-5" /> },
+                { label: 'Control Aduanero (Aduanas)', sub: 'Control de mercancías y franquicias', estado: resultado.estadoAduana, icon: <Package className="w-5 h-5" /> },
               ].map(({ label, sub, estado, icon }) => {
                 const props = getVerifyProps(estado);
                 return (
                   <div key={label} className={`verify-card ${props.card}`}>
                     <div className="flex items-center gap-4">
-                      <div className={props.icon}>{icon}</div>
+                      <div className={`icon-wrap ${props.icon}`}>{icon}</div>
                       <div>
-                        <h4 className="font-semibold text-white text-sm">{label}</h4>
-                        <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
+                        <h4 className="font-bold text-slate-900 text-sm">{label}</h4>
+                        <p className="text-xs text-slate-500 mt-0.5">{sub}</p>
                       </div>
                     </div>
-                    <span className={props.badge}>
-                      {estado === 'Aprobado' && <CheckCircle className="w-3 h-3" />}
-                      {estado === 'Revisión Requerida' && <AlertTriangle className="w-3 h-3" />}
-                      {estado === 'Sin Declaración' && <FileText className="w-3 h-3" />}
+                    <span className={`badge ${props.badge}`}>
+                      {props.iconEl}
                       {estado}
                     </span>
                   </div>
                 );
               })}
 
-              {/* Acción final */}
-              <div className="pt-3 flex justify-end">
-                <button className="px-8 py-3 rounded-xl font-bold text-white transition-all duration-200 flex items-center gap-2"
-                  style={{background:'linear-gradient(135deg,#383979,#204E73)', boxShadow:'0 4px 20px rgba(56,57,121,0.4)'}}>
-                  <CheckCircle className="w-5 h-5" /> Autorizar Cruce Fronterizo
+              <div className="pt-4 flex justify-end">
+                <button onClick={() => { alert('Cruce Autorizado y Registrado.'); setResultado(null); setBusqueda(''); }} className="btn-emerald">
+                  <CheckCircle className="w-5 h-5" /> Registrar y Autorizar Cruce
                 </button>
               </div>
             </div>
@@ -565,12 +576,12 @@ function VistaFuncionario({ setVista }) {
 
         {/* Estado vacío */}
         {!resultado && !cargando && (
-          <div className="text-center py-20 animate-fade-in">
-            <div className="icon-glow-neutral inline-flex mb-4 p-4">
-              <QrCode className="w-10 h-10 text-slate-500" />
+          <div className="text-center py-16 glass">
+            <div className="icon-wrap icon-slate inline-flex mb-4">
+              <FileSpreadsheet className="w-8 h-8" />
             </div>
-            <p className="text-slate-400 font-medium">Ingrese un RUT o escanee un código QR</p>
-            <p className="text-slate-600 text-sm mt-1">para verificar el estado del viajero en los sistemas.</p>
+            <p className="text-slate-800 font-bold">Esperando Consulta</p>
+            <p className="text-slate-500 text-sm mt-1">Escriba el número de documento de identidad en el buscador superior.</p>
           </div>
         )}
       </main>

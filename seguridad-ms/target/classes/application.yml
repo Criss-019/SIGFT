@@ -1,20 +1,22 @@
 server:
-  port: ${SERVER_PORT:8083}
-
+  port: ${PORT:8083}
 
 spring:
   application:
     name: seguridad-ms
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/seguridad_db?createDatabaseIfNotExist=true&useSSL=false}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/seguridad_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
     username: ${DB_USER:root}
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 30000
+      initialization-fail-timeout: -1   # -1 = nunca falla al arrancar, reintentar en background
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
 
 # JWT — en producción sobreescribir con variable de entorno JWT_SECRET
 app:
@@ -22,19 +24,31 @@ app:
     secret: ${JWT_SECRET:c2lnZnQtc2VjcmV0LWtleS1wYXJhLWRlc2Fycm9sbG8tMjAyNS1taW5pbW8tMzJieXRlcw==}
     expiration-ms: 86400000  # 24 horas
 
-logging:
-  level:
-    cl.duoc.sigft.seguridad_ms: INFO
-
 eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+    initial-instance-info-replication-interval-seconds: 10
+    registry-fetch-interval-seconds: 10
   instance:
     prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
 
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: "health,info"
+  endpoint:
+    health:
+      show-details: always
+  health:
+    db:
+      enabled: false
+
+logging:
+  level:
+    cl.duoc.sigft.seguridad_ms: INFO
