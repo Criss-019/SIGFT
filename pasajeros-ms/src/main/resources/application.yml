@@ -5,13 +5,13 @@ spring:
   application:
     name: pasajeros-ms
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/pasajeros_db?createDatabaseIfNotExist=true&useSSL=false}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/pasajeros_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
     username: ${DB_USER:root}
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       connection-timeout: 30000
-      initialization-fail-timeout: 60000
+      initialization-fail-timeout: -1   # -1 = nunca falla al arrancar, reintentar en background
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     defer-datasource-initialization: true
@@ -40,6 +40,9 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    db:
+      enabled: false   # No incluir estado de DB en el healthcheck de Railway
 
 logging:
   level:
