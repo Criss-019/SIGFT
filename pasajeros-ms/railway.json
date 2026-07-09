@@ -7,7 +7,6 @@
   "deploy": {
     "startCommand": "java -jar target/*.jar",
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 5,
-    "healthcheckPath": "/actuator/health"
+    "restartPolicyMaxRetries": 5
   }
 }
